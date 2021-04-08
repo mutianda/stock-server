@@ -13,8 +13,13 @@
                 const lineList = JSON.parse(item.kline)
                 this.computKline(lineList,item.share_name,item.share_code)
             })
-            this.getDbl()
-            if(this.computeType=='lianban'){
+            if(!this.computeType||this.computeType=='all'){
+                this.dblList = this.macdList
+            }
+            if(this.computeType.indexOf('dbl')>-1){
+                this.getDbl()
+            }
+            if(this.computeType.indexOf('lianban')>-1){
                 this.getRiseAgain()
             }
             return this.dblList
@@ -128,21 +133,17 @@
 
         }
       getDbl(){
-            this.dblList = []
-            let dblList = []
-          if(this.computeType=='all') {
-              dblList = this.macdList
-          }else {
-              this.macdList.forEach(item=>{
-                  const dbl = this.computeDbl(item.macd)
-                  const noStAndKc = this.noStAndKc(item)
-                  const rise = this.beRised(item)
-                  if(dbl&&noStAndKc&&rise){
-                      dblList.push(item)
-                  }
-              })
-          }
-            this.dblList=dblList
+          const dblList = []
+
+          this.macdList.forEach(item=>{
+              const dbl = this.computeDbl(item.macd)
+              const noStAndKc = this.noStAndKc(item)
+              const rise = this.beRised(item)
+              if(dbl&&noStAndKc&&rise){
+                  dblList.push(item)
+              }
+          })
+          this.dblList=dblList
         }
        beRised(item){
             const l = item.macd.length-1
@@ -174,7 +175,7 @@
                 }
             })
             let type = true
-            if(this.computeType=='chaobeili'){
+            if(this.computeType.indexOf('chaodbl')>-1){
                 type = acd[1]*2>acd[3]||acd[1]>-2
             }
             if(acd.length>3&&acd[0]>0&&acd[1]>acd[3]&&type){

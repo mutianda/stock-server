@@ -1,11 +1,11 @@
 const mysql = require('mysql')
 
 const option = {
-    host: 'localhost',
-    user: 'root',
+    host: '120.26.62.101',
+    user: 'chen',
     password: 'cgd',
     port: '3306',
-    database: 'shares',
+    database: 'stock',
     connectTimeout: 5000, //连接超时
     multipleStatements: false //是否允许一个query中包含多条sql语句
 }
