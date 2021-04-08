@@ -1,8 +1,8 @@
 const mysql = require('mysql')
 
 const option = {
-    host: '120.26.62.101',
-    user: 'chen',
+    host: '127.0.0.1',
+    user: 'root',
     password: 'cgd',
     port: '3306',
     database: 'stock',
