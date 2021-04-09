@@ -178,7 +178,7 @@
             if(this.computeType.indexOf('chaodbl')>-1){
                 type = acd[1]*2>acd[3]||acd[1]>-2
             }
-            if(acd.length>3&&acd[0]>0&&acd[1]>acd[3]&&type){
+            if(acd.length>3&&acd[0]>0&&acd[1]>acd[3]&&type&&dmacd[3]<0){
                 return true
             }else {
                 return false

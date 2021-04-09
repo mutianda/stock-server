@@ -1,8 +1,9 @@
 var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("../../index.js");
 // { getTime,conn ,schedule,app,api,socket,email}
 var realTimeList=[]
+var times =0
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/10 9-15 * * *', ()=>{
+    schedule.scheduleJob('30  0/2 9-14 * * *', ()=>{
         let {m,d,h,min,s} = getTime()
         realTimeList = []
         console.log('推送')
@@ -41,38 +42,45 @@ getRealTime = ()=>{
 function realTimeShare(resu){
     const arr = []
     console.log('结果了')
-  resu.forEach(res=>{
-      let a = res.indexOf('(')
-      let b =res.lastIndexOf(')')
-      res = res.slice(a+1,b)
-      const {data} = JSON.parse(res)
-      console.log(data,'data');
-      const share = realTimeList.find(item=>item.share_code==data.f57)
-      if(share.price_rise<data.f43){
-          arr.push(data)
-      }
-  })
+      resu.forEach(res=>{
+          let a = res.indexOf('(')
+          let b =res.lastIndexOf(')')
+          res = res.slice(a+1,b)
+          const {data} = JSON.parse(res)
+          console.log(data,'data');
+          const share = realTimeList.find(item=>item.share_code==data.f57)
+          if(share.price_rise<data.f43){
+              arr.push({...data,...share})
+          }
+      })
+    if(arr.length){
+        socket.emit('realTimeStock',arr)
+        times++
+        if(times>10){
 
-    var mailOptions = {
-        from: '270947682@qq.com', // 发送者
-        sender:'股票分析',
-        to: 'qingyi.zongbu@qq.com', // 接受者,可以同时发送多个,以逗号隔开
-        subject: '分析', // 标题
-        //text: 'Hello world', // 文本
-        html: `<h2>分析:</h2>
+         times=0
+        var mailOptions = {
+            from: '270947682@qq.com', // 发送者
+            sender:'股票分析',
+            to: 'qingyi.zongbu@qq.com', // 接受者,可以同时发送多个,以逗号隔开
+            subject: '分析', // 标题
+            //text: 'Hello world', // 文本
+            html: `<h2>分析:</h2>
 `
-    };
-    arr.forEach(it=>{
-        mailOptions.html+=`<div><span>名称：${it.f58}</span><span style="color: ${it.f170>0?'red':'green'}">最新价：${it.f43}</span><span style="color: ${it.f170>0?'red':'green'}">涨幅：${it.f170}%</span></div>`
-    })
-    console.log(mailOptions);
-    email.sendMail(mailOptions, function (err, info) {
-        if (err) {
-            console.log(err);
-            return;
+        };
+        arr.forEach(it=>{
+            mailOptions.html+=`<div><span>名称：${it.f58}</span><span style="color: ${it.f170>0?'red':'green'}">最新价：${it.f43}</span><span style="color: ${it.f170>0?'red':'green'}">涨幅：${it.f170}%</span></div>`
+        })
+        console.log(mailOptions);
+        email.sendMail(mailOptions, function (err, info) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            console.log('发送了')
+        })
         }
-        console.log('发送了')
-    })
+    }
 
 }
 
