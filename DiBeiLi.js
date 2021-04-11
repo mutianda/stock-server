@@ -140,6 +140,7 @@
               const noStAndKc = this.noStAndKc(item)
               const rise = this.beRised(item)
               if(dbl&&noStAndKc&&rise){
+                  console.log(item.name);
                   dblList.push(item)
               }
           })
