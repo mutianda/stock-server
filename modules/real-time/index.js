@@ -3,7 +3,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("
 var realTimeList=[]
 var times =0
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/2 9-16 * * *', ()=>{
+    schedule.scheduleJob('30  0/2 9-21 * * *', ()=>{
         let {m,d,h,min,s} = getTime()
         realTimeList = []
         console.log('推送')
