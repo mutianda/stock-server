@@ -3,7 +3,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("
 var realTimeList=[]
 var times =0
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/2 0-14 * * *', ()=>{
+    schedule.scheduleJob('30  0/2 9-16 * * *', ()=>{
         let {m,d,h,min,s} = getTime()
         realTimeList = []
         console.log('推送')
@@ -48,13 +48,14 @@ function realTimeShare(resu){
           const {data} = JSON.parse(res)
           const share = realTimeList.find(item=>item.share_code==data.f57)
           if(share.price_rise&&share.price_rise<data.f43){
-              arr.push({...data,...share,desc:'买入',pushType:'up'})
+              arr.push({...data,...share,desc:'B',pushType:'up'})
           }
           if(share.price_down&&share.price_down>data.f43){
-              arr.push({...data,...share,desc:'卖出',pushType:'down'})
+              arr.push({...data,...share,desc:'S',pushType:'down'})
           }
       })
     if(arr.length){
+        console.log(arr,'arr');
         socket.emit('realTimeStock',arr)
         times++
         if(times>10){

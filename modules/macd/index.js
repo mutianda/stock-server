@@ -2,7 +2,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("
 const getTodayRiseLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('2  40 12 * * *', ()=>{
+    schedule.scheduleJob('2  40 12 * * 6', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('所有的今日信息')
         getTodayRise()
@@ -96,7 +96,7 @@ app.post('/getAllKLine', (req, res) => {
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 46 12  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 46 9  *  * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
