@@ -16,10 +16,29 @@
             if(!this.computeType||this.computeType=='all'){
                 this.dblList = this.macdList
             }
+            if(this.computeType.indexOf('lianban-')>-1){
+                const l = this.computeType.split('-')[1]||3
+               this.dblList =  this.macdList.filter(item=>{
+                    let arr = []
+                    item.kline.forEach(it=>{
+                        if(arr.length<l){
+                            if(it.risePrecent>9.6){
+                                arr.push(it)
+                            }else {
+                                arr = []
+                            }
+                        }
+                    })
+
+                    return arr.length>=l
+
+                })
+
+            }
             if(this.computeType.indexOf('dbl')>-1){
                 this.getDbl()
             }
-            if(this.computeType.indexOf('lianban')>-1){
+            if(this.computeType.indexOf('dbllianban')>-1){
                 this.getRiseAgain()
             }
             return this.dblList
