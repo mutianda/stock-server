@@ -58,7 +58,7 @@ function realTimeShare(resu){
         console.log(arr,'arr');
         socket.emit('realTimeStock',arr)
         times++
-        if(times>10){
+        if(times>30){
 
          times=0
         var mailOptions = {
