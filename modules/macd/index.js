@@ -8,7 +8,9 @@ const getTodayRiseLx = ()=>{
         getTodayRise()
     })
 }
+let stock = {
 
+}
 // 获取所有股票今天的信息
 getTodayRiseLx()
 
@@ -79,17 +81,26 @@ app.get('/getKLine', (req, res) => {
     })
 })
 app.post('/getAllKLine', (req, res) => {
-    let {type}  = req.body
-    let sql = `select * from kline `
+    let {type,pageSize=100,pageNum=1,}  = req.body
+    let sql = `select * from kline`
     console.log(sql);
-    conn(sql).then(re=>{
-        let Dbl = new diBeiLi(re,type)
-        let all = Dbl.getKline()
-        res.json(new Result({data:all,msg:'查询成功'}))
-    }).catch(e=>{
-        res.json(new Result({data:e,msg:'查询error'}))
-
-    })
+    if(stock[type]){
+        const total = stock[type].length
+        let list = stock[type].slice((pageNum-1)*pageSize,pageNum*pageSize)
+        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+    }else {
+        conn(sql).then(re=>{
+            let Dbl = new diBeiLi(re,type)
+            let all = Dbl.getKline()
+            let total = all.length
+            stock[type] = all
+            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }).catch(e=>{
+            res.json(new Result({data:e,msg:'查询error'}))
+        
+        })
+    }
 })
 
 
@@ -100,6 +111,7 @@ const getAllKLineLx = ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
+        stock = {}
         conn('truncate kline').then(res=>{
             getAllKLine()
 
