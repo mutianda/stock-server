@@ -20,16 +20,16 @@
                 const l = this.computeType.split('-')[1]||3
                this.dblList =  this.macdList.filter(item=>{
                     let arr = []
-                    item.kline.forEach(it=>{
-                        if(arr.length<l){
+                    item.kline.forEach((it,index)=>{
+                        if(arr.length<l&&index<item.kline.length-1){
                             if(it.risePrecent>9.6){
-                                arr.push(it)
+                                arr.push({...it})
                             }else {
                                 arr = []
                             }
                         }
                     })
-
+                   item.lianban = arr.map(res=>res.time).join('-')
                     return arr.length>=l
 
                 })
