@@ -70,7 +70,7 @@ function realTimeShare(resu){
             html: `<h2>分析:</h2>
 `
         };
-        arr.forEach(it=>{
+        arr.sort((a,b)=>b.f170-a.f170).forEach(it=>{
             mailOptions.html+=`<div><span>名称：${it.f58}</span><span style="color: ${it.f170>0?'red':'green'}">最新价：${it.f43}</span><span style="color: ${it.f170>0?'red':'green'}">涨幅：${it.f170}%</span></div>`
         })
         console.log(mailOptions);
@@ -92,7 +92,7 @@ app.post('/addRealTimePush', (req, res) => {
     let newarry = arr.map(citem => {
         return "'" + citem + "'"
     })
-    let sql = "INSERT INTO real_time ( user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ) VALUES ( " +
+    let sql = "REPLACE  INTO real_time ( user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ) VALUES ( " +
         ""+newarry.toLocaleString() +")"
 
     conn(sql).then( r => {
@@ -110,9 +110,13 @@ app.post('/addRealTimePush', (req, res) => {
     })
 })
 app.post('/editRealTimePush', (req, res) => {
-    let { user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ,id} = req.body
-
-    let sql = `UPDATE real_time SET share_code = ${'\'' + share_code + '\''} , share_name = ${'\'' + share_name + '\''} ,price_rise = ${price_rise||0 },turn_hand = ${turn_hand||0  },price_down = ${price_down||0 },limit_up = ${ limit_up||0 } where id = ${id}`
+    let { user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down } = req.body
+    let arr = [ user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down]
+    let newarry = arr.map(citem => {
+        return "'" + citem + "'"
+    })
+    let sql = "REPLACE  INTO real_time ( user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ) VALUES ( " +
+            ""+newarry.toLocaleString() +")"
 
 
     conn(sql).then(r=>{
@@ -145,9 +149,9 @@ app.post('/getRealTimePush', (req, res) => {
     })
 })
 app.post('/removeRealTimePush', (req, res) => {
-    let { id } = req.body
+    let { share_code } = req.body
 
-    let sql = `delete from real_time where id = ${id}`
+    let sql = `delete from real_time where share_code = ${share_code}`
     console.log(sql);
     conn(sql).then(r => {
         if(r){
