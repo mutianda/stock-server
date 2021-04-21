@@ -107,14 +107,37 @@ app.post('/getAllKLine', (req, res) => {
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 15 21  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 23 2  *  * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
         stock = {}
         conn('truncate kline').then(res=>{
-            getAllKLine()
+            let sqlday = `INSERT INTO kline ( today_time , share_code,  kline,share_name) VALUES `
+            getAllKLine(101,sqlday)
+        })
+    })
+    //每分钟的1-10秒都会触发，其它通配符依次类推
+    schedule.scheduleJob('23 17 2  *  * 1-5', ()=>{
+        let {m,d,h,min,s} = getTime()
+        console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
+        console.log('所有的k线')
+        stock = {}
+        conn('truncate kline_30m').then(res=>{
+            let sql30 = `INSERT INTO kline_30m ( today_time , share_code,  kline,share_name) VALUES `
 
+            getAllKLine(30,sql30)
+        })
+    })
+    //每分钟的1-10秒都会触发，其它通配符依次类推
+    schedule.scheduleJob('23 19 2  *  * 1-5', ()=>{
+        let {m,d,h,min,s} = getTime()
+        console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
+        console.log('所有的k线')
+        stock = {}
+        conn('truncate kline_60m').then(res=>{
+            let sql60 = `INSERT INTO kline_60m ( today_time , share_code,  kline,share_name) VALUES `
+            getAllKLine(60,sql60)
         })
     })
 }
@@ -145,15 +168,13 @@ function getAllShareCode() {
 
 
 
-async function getAllKLine() {
+async function getAllKLine(t,sql) {
     let res = await getAllShareCode()
-
     if(res.length){
-        console.log('res')
-        doAllKLinePromise(0,res)
+        doAllKLinePromise(0,res,t,sql)
     }
 }
-function doAllKLinePromise(n,list){
+function doAllKLinePromise(n,list,t,sql){
     let prom = []
     for(var i = 0;i<400;i++){
         let code = ''
@@ -165,32 +186,34 @@ function doAllKLinePromise(n,list){
             }else {
                 code = '0.'+item
             }
-            prom.push(api.getKLine(code))
+            prom.push(api.getKLine(code,t))
         }
 
         // getTodayMoneyKLine(code)
     }
-    console.log('prom',prom.length)
+
     if(prom.length){
         Promise.all(prom).then((resu)=>{
             console.log(resu.length);
-            getKLine(resu).then(res=>{
+            getKLine(resu,sql).then(res=>{
                 if(n<list.length){
                     console.log('进行了n次',n)
-                    doAllKLinePromise(n+400,list)
+                    doAllKLinePromise(n+400,list,t,sql)
+                }else {
+
                 }
             })
 
         })
     }
 }
-function getKLine(list){
+function getKLine(list,sql){
     return new Promise((resolve,reject)=>{
 
 
         console.log('list'+list.length)
         let time = getTime()
-        let sql2 = `INSERT INTO kline ( today_time , share_code,  kline,share_name) VALUES `
+        let sql2 =sql
         // moneykl,
         list.forEach((res,index)=>{
             if(res.length>400){
