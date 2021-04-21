@@ -16,7 +16,7 @@
             if(!this.computeType||this.computeType=='all'){
                 this.dblList = this.macdList
             }
-            if(this.computeType.indexOf('lianban-')>-1){
+            if(this.computeType.indexOf('alllianban-')>-1){
                 const l = this.computeType.split('-')[1]||3
                this.dblList =  this.macdList.filter(item=>{
                     let arr = []
@@ -38,18 +38,26 @@
             if(this.computeType.indexOf('dbl')>-1){
                 this.getDbl()
             }
-            if(this.computeType.indexOf('dbllianban')>-1){
-                this.getRiseAgain()
+            if(this.computeType.indexOf('dbllianban-')>-1){
+                const l = this.computeType.split('-')[1]||3
+                this.dblList =  this.dblList.filter(item=>{
+                    let arr = []
+                    item.kline.forEach((it,index)=>{
+                        if(arr.length<l&&index<item.kline.length-1){
+                            if(it.risePrecent>9.6){
+                                arr.push({...it})
+                            }else {
+                                arr = []
+                            }
+                        }
+                    })
+                    item.lianban = arr.map(res=>res.time).join('-')
+                    return arr.length>=l
+        
+                })
             }
             return this.dblList
         }
-        getRiseAgain(){
-           this.dblList =  this.dblList.filter(item=>{
-               const k = item.kline
-               return  k[k.length-1].risePrecent>5&&k[k.length-2].risePrecent>5&&(k[k.length-1].close==k[k.length-1].high)
-           })
-
-       }
         computKline(kline,name,code){
             const input = kline.map(item=>{
                 const k = item.split(',')
