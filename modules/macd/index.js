@@ -68,72 +68,12 @@ function getTodayRise(){
     })
 }
 
-app.get('/getKLine', (req, res) => {
-    let {shareCode=''} = req.query
-    let sql = `select * from kline where share_code = '${shareCode}' `
-    console.log(sql);
-    conn(sql).then(re=>{
 
-        res.json(new Result({data:re,msg:'查询成功'}))
-    }).catch(e=>{
-        res.json(new Result({data:e,msg:'查询error'}))
-
-    })
-})
-app.post('/getAllKLine', (req, res) => {
-    let {type,pageSize=100,pageNum=1,}  = req.body
-    let sql = `select * from kline`
-    console.log(sql);
-    if(stock[type]){
-        const total = stock[type].length
-        let list = stock[type].slice((pageNum-1)*pageSize,pageNum*pageSize)
-        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-    }else {
-        conn(sql).then(re=>{
-            let Dbl = new diBeiLi(re,type)
-            let all = Dbl.getKline()
-            let total = all.length
-            stock[type] = all
-            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }).catch(e=>{
-            res.json(new Result({data:e,msg:'查询error'}))
-
-        })
-    }
-})
-app.post('/getMinKLine', (req, res) => {
-    let {code,time=30}  = req.body
-    if(time == 30){
-        let sql = `select * from kline_30m where share_code = ${code}`
-    }else if(time==60){
-        let sql = `select * from kline_6m where share_code = ${code}`
-    }
-    let sql = `select * from kline_30m where share_code = ${code}`
-    console.log(sql);
-    if(stock[type]){
-        const total = stock[type].length
-        let list = stock[type].slice((pageNum-1)*pageSize,pageNum*pageSize)
-        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-    }else {
-        conn(sql).then(re=>{
-            let Dbl = new diBeiLi(re,type)
-            let all = Dbl.getKline()
-            let total = all.length
-            stock[type] = all
-            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }).catch(e=>{
-            res.json(new Result({data:e,msg:'查询error'}))
-            
-        })
-    }
-})
 
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 5 16  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -144,7 +84,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 10 16  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 35 12  *  * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -156,7 +96,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 14 16  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 14 12  *  * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -277,7 +217,68 @@ function getKLine(list,sql){
     })
 
 }
+app.get('/getKLine', (req, res) => {
+    let {shareCode=''} = req.query
+    let sql = `select * from kline where share_code = '${shareCode}' `
+    console.log(sql);
+    conn(sql).then(re=>{
 
+        res.json(new Result({data:re,msg:'查询成功'}))
+    }).catch(e=>{
+        res.json(new Result({data:e,msg:'查询error'}))
+
+    })
+})
+app.post('/getAllKLine', (req, res) => {
+    let {type,pageSize=100,pageNum=1,}  = req.body
+    let sql = `select * from kline_30m`
+    console.log(sql);
+    if(stock['daykline']){
+        const total = stock['daykline'].length
+        let list = stock['daykline'].slice((pageNum-1)*pageSize,pageNum*pageSize)
+        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+    }else {
+        conn(sql).then(re=>{
+            let Dbl = new diBeiLi(re,type)
+            let all = Dbl.getKline()
+            console.log(all.length,'all');
+            let total = all.length
+            stock['daykline'] = all
+            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }).catch(e=>{
+            res.json(new Result({data:e,msg:'查询error'}))
+
+        })
+    }
+})
+app.post('/getMinKLine', (req, res) => {
+    let {code,time=30}  = req.body
+    if(time == 30){
+        let sql = `select * from kline_30m where share_code = ${code}`
+    }else if(time==60){
+        let sql = `select * from kline_6m where share_code = ${code}`
+    }
+    let sql = `select * from kline_30m where share_code = ${code}`
+    console.log(sql);
+    if(stock['type']){
+        const total = stock[type].length
+        let list = stock[type].slice((pageNum-1)*pageSize,pageNum*pageSize)
+        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+    }else {
+        conn(sql).then(re=>{
+            let Dbl = new diBeiLi(re,type)
+            let all = Dbl.getKline()
+            let total = all.length
+            stock[type] = all
+            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }).catch(e=>{
+            res.json(new Result({data:e,msg:'查询error'}))
+
+        })
+    }
+})
 
 app.post('/makeTxt', (req, res) => {
     let { dbqd,qs ,tpzs,kaishi,jiasu } = req.body

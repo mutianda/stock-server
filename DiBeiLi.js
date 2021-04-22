@@ -13,50 +13,32 @@
                 const lineList = JSON.parse(item.kline)
                 this.computKline(lineList,item.share_name,item.share_code)
             })
-            if(!this.computeType||this.computeType=='all'){
-                this.dblList = this.macdList
-            }
-            if(this.computeType.indexOf('alllianban-')>-1){
-                const l = this.computeType.split('-')[1]||3
-               this.dblList =  this.macdList.filter(item=>{
-                    let arr = []
-                    item.kline.forEach((it,index)=>{
-                        if(arr.length<l&&index<item.kline.length-1){
-                            if(it.risePrecent>9.6){
-                                arr.push({...it})
-                            }else {
-                                arr = []
-                            }
-                        }
-                    })
-                   item.lianban = arr.map(res=>res.time).join('-')
-                    return arr.length>=l
 
-                })
 
-            }
-            if(this.computeType.indexOf('dbl')>-1){
-                this.getDbl()
-            }
-            if(this.computeType.indexOf('dbllianban-')>-1){
-                const l = this.computeType.split('-')[1]||3
-                this.dblList =  this.dblList.filter(item=>{
-                    let arr = []
-                    item.kline.forEach((it,index)=>{
-                        if(arr.length<l&&index<item.kline.length-1){
-                            if(it.risePrecent>9.6){
-                                arr.push({...it})
-                            }else {
-                                arr = []
-                            }
+            this.macdList =  this.macdList.map(item=>{
+                let arr = []
+                let l = []
+                item.kline.forEach((it,index)=>{
+                    if(index<item.kline.length-1){
+                        if(it.risePrecent>9.6){
+                            arr.push({...it})
+                        }else {
+                            l = arr.length>l.length?[...arr]:l
+                            arr = []
                         }
-                    })
-                    item.lianban = arr.map(res=>res.time).join('-')
-                    return arr.length>=l
-        
+                    }
                 })
-            }
-            return this.dblList
+               const dbl =  this.getDbl(item)
+               item.lianban = l
+                return {
+                    ...item,
+                    lianban:l,
+                    ...dbl
+                }
+
+            })
+            return this.macdList
+
         }
         computKline(kline,name,code){
             const input = kline.map(item=>{
@@ -77,7 +59,7 @@
             })
             this.computeMacd(input,name,code)
         }
-     computeMacd(data,name,code){
+        computeMacd(data,name,code){
             var input ,macd;
             input = data
             var calcEMA,calcDIF,calcDEA,calcMACD;
@@ -159,19 +141,16 @@
             this.macdList.push(macd)
 
         }
-      getDbl(){
-          const dblList = []
-
-          this.macdList.forEach(item=>{
-              const dbl = this.computeDbl(item.macd)
-              const noStAndKc = this.noStAndKc(item)
-              const rise = this.beRised(item)
-              if(dbl&&noStAndKc&&rise){
-                  console.log(item.name);
-                  dblList.push(item)
-              }
-          })
-          this.dblList=dblList
+      getDbl(item){
+          const dbl = this.computeDbl(item.macd)
+          const noStAndKc = this.noStAndKc(item)
+          const rise = this.beRised(item)
+          const base = noStAndKc&&rise
+          return  {
+              chudbl:dbl.chudbl&&base,
+              chaodbl: dbl.chaodbl&&base,
+              dbl:dbl&&base
+          }
         }
        beRised(item){
             const l = item.macd.length-1
@@ -202,18 +181,13 @@
                     flag = item
                 }
             })
-            let chao = true
-            if(this.computeType.indexOf('chaodbl')>-1){
-                chao = acd[1]*2>acd[3]||acd[1]>-2
-            }
-            let chu = true
-            if(this.computeType.indexOf('chudbl')>-1){
-                chu = dmacd[3]<0
-            }
-            if(acd.length>3&&acd[0]>0&&acd[1]>acd[3]&&chao&&chu){
-                return true
-            }else {
-                return false
+            let chao = acd[1]*2>acd[3]||acd[1]>-2
+            let chu = dmacd[3]<0
+            const dbl = acd.length>3&&acd[0]>0&&acd[1]>acd[3]
+            return {
+                chudbl:dbl&&chu,
+                chaodbl:dbl&&chao,
+                dbl,
             }
 
         }
