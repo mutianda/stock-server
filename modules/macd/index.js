@@ -231,21 +231,65 @@ app.get('/getKLine', (req, res) => {
 })
 app.post('/getAllKLine', (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
-    let sql = `select * from kline_30m`
+    let sql = `select * from kline`
     console.log(sql);
     if(stock['daykline']){
-        const total = stock['daykline'].length
-        let list = stock['daykline'].slice((pageNum-1)*pageSize,pageNum*pageSize)
-        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        if(type=='chudbl'){
+            const arr = stock['daykline'].filter(item=>item.chudbl)
+            const total = arr.length
+            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }
+        if(type=='chaodbl'){
+            const arr = stock['daykline'].filter(item=>item.chaodbl)
+            const total = arr.length
+            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }
+        if(type.indexOf('alllianban-')>-1){
+            const i = type.split('-')[1]-1||2
+            const arr = stock['daykline'].filter(item=>item.lianban.length>i)
+            const total = arr.length
+            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }
+        if(!type||type=='all'){
+            const arr = stock['daykline']
+            const total = arr.length
+            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        }
+
     }else {
         conn(sql).then(re=>{
             let Dbl = new diBeiLi(re,type)
             let all = Dbl.getKline()
-            console.log(all.length,'all');
-            let total = all.length
             stock['daykline'] = all
-            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+            if(type=='chudbl'){
+                const arr = stock['daykline'].filter(item=>item.chudbl)
+                const total = arr.length
+                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+            }
+            if(type=='chaodbl'){
+                const arr = stock['daykline'].filter(item=>item.chaodbl)
+                const total = arr.length
+                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+            }
+            if(type.indexOf('alllianban-')>-1){
+                const i = type.split('-')[1]-1||2
+                const arr = stock['daykline'].filter(item=>item.lianban.length>i)
+                const total = arr.length
+                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+            }
+            if(!type||type=='all'){
+                const arr = stock['daykline']
+                const total = arr.length
+                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+            }
         }).catch(e=>{
             res.json(new Result({data:e,msg:'查询error'}))
 
