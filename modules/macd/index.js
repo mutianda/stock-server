@@ -11,6 +11,7 @@ const getTodayRiseLx = ()=>{
 let stock = {
 
 }
+let stockCode = []
 // 获取所有股票今天的信息
 getTodayRiseLx()
 
@@ -77,10 +78,30 @@ const getAllKLineLx = ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
-        stock = {}
         conn('truncate kline').then(res=>{
             let sqlday = `INSERT INTO kline ( today_time , share_code,  kline,share_name) VALUES `
             getAllKLine(101,sqlday)
+        })
+    })
+    //每分钟的1-10秒都会触发，其它通配符依次类推
+    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
+        let {m,d,h,min,s} = getTime()
+        console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
+        console.log('所有的k线')
+    
+        conn('truncate kline').then(res=>{
+            let sqlweek = `INSERT INTO kline_week ( today_time , share_code,  kline,share_name) VALUES `
+            getAllKLine(101,sqlweek)
+        })
+    })
+    //每分钟的1-10秒都会触发，其它通配符依次类推
+    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
+        let {m,d,h,min,s} = getTime()
+        console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
+        console.log('所有的k线')
+        conn('truncate kline').then(res=>{
+            let sql120m = `INSERT INTO kline_120m ( today_time , share_code,  kline,share_name) VALUES `
+            getAllKLine(120,sql120m)
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
@@ -88,7 +109,7 @@ const getAllKLineLx = ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
-        stock = {}
+   
         conn('truncate kline_30m').then(res=>{
             let sql30 = `INSERT INTO kline_30m ( today_time , share_code,  kline,share_name) VALUES `
 
@@ -100,7 +121,6 @@ const getAllKLineLx = ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
-        stock = {}
         conn('truncate kline_60m').then(res=>{
             let sql60 = `INSERT INTO kline_60m ( today_time , share_code,  kline,share_name) VALUES `
             getAllKLine(60,sql60)
@@ -115,18 +135,23 @@ getAllKLineLx()
 function getAllShareCode() {
     const sql = "SELECT share_code FROM share"
     return new Promise((reslove,reject)=>{
-        conn(sql).then( r => {
-            if(r&&r.length>0){
-                let arr = []
-                r.forEach(item=>{
-                    arr.push(item.share_code)
-                })
-                reslove(arr)
-            }
-        }).catch(e=>{
-                reject(e,'eeeeee')
-            }
-        )
+        if(stockCode.length){
+            reslove(stockCode)
+        }else{
+            conn(sql).then( r => {
+                if(r&&r.length>0){
+                    let arr = []
+                    r.forEach(item=>{
+                        arr.push(item.share_code)
+                    })
+                    stockCode = arr
+                    reslove(arr)
+                }
+            }).catch(e=>{
+                    reject(e,'eeeeee')
+                }
+            )
+        }
     })
 }
 
@@ -144,7 +169,6 @@ function doAllKLinePromise(n,list,t,sql){
     let prom = []
     for(var i = 0;i<400;i++){
         let code = ''
-
         if(list[n+i]){
             let item = list[n+i]
             if(item[0]==6){
@@ -154,7 +178,6 @@ function doAllKLinePromise(n,list,t,sql){
             }
             prom.push(api.getKLine(code,t))
         }
-
         // getTodayMoneyKLine(code)
     }
 
@@ -175,8 +198,6 @@ function doAllKLinePromise(n,list,t,sql){
 }
 function getKLine(list,sql){
     return new Promise((resolve,reject)=>{
-
-
         console.log('list'+list.length)
         let time = getTime()
         let sql2 =sql
@@ -324,6 +345,25 @@ app.post('/getMinKLine', (req, res) => {
     }
 })
 
+function computeAll(){
+    const tables = [' kline',' kline_week',' kline_120m',' kline_60m',' kline_30m']
+  
+    const promise = []
+    tables.forEach(item=>{
+        promise.push(conn('select * from '+item))
+    })
+    Promise.all(promise).then(resList=>{
+    
+        resList.forEach((res,index)=>{
+            if(res&&res.length){
+                let Dbl = new diBeiLi(res,'all')
+                let all = Dbl.getKline()
+                stock[tables[index]] = all
+            }
+        })
+    })
+
+}
 app.post('/makeTxt', (req, res) => {
     let { dbqd,qs ,tpzs,kaishi,jiasu } = req.body
 
