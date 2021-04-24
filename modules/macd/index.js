@@ -1,4 +1,4 @@
-var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("../../index.js");
+var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,redis} = require("../../index.js");
 const getTodayRiseLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
@@ -74,7 +74,7 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 18 20  *  * 1-6', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -84,32 +84,32 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 18 23  *  * 1-6', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
-    
-        conn('truncate kline').then(res=>{
+
+        conn('truncate kline_week').then(res=>{
             let sqlweek = `INSERT INTO kline_week ( today_time , share_code,  kline,share_name) VALUES `
-            getAllKLine(101,sqlweek)
+            getAllKLine(102,sqlweek)
         })
     })
+    // //每分钟的1-10秒都会触发，其它通配符依次类推
+    // schedule.scheduleJob('23 14 23  *  * 1-6', ()=>{
+    //     let {m,d,h,min,s} = getTime()
+    //     console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
+    //     console.log('所有的k线')
+    //     conn('truncate kline_120m').then(res=>{
+    //         let sql120m = `INSERT INTO kline_120m ( today_time , share_code,  kline,share_name) VALUES `
+    //         getAllKLine(100,sql120m)
+    //     })
+    // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 30 1  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 3 20  *  * 1-6', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
-        conn('truncate kline').then(res=>{
-            let sql120m = `INSERT INTO kline_120m ( today_time , share_code,  kline,share_name) VALUES `
-            getAllKLine(120,sql120m)
-        })
-    })
-    //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 35 12  *  * 1-5', ()=>{
-        let {m,d,h,min,s} = getTime()
-        console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
-        console.log('所有的k线')
-   
+
         conn('truncate kline_30m').then(res=>{
             let sql30 = `INSERT INTO kline_30m ( today_time , share_code,  kline,share_name) VALUES `
 
@@ -117,7 +117,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 14 12  *  * 1-5', ()=>{
+    schedule.scheduleJob('23 58 19  *  * 1-6', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -130,7 +130,7 @@ const getAllKLineLx = ()=>{
 // getAllTodayMoneyKLineLx()
 // getAllRecentLineLx()
 getAllKLineLx()
-
+computeAll()
 
 function getAllShareCode() {
     const sql = "SELECT share_code FROM share"
@@ -250,117 +250,69 @@ app.get('/getKLine', (req, res) => {
 
     })
 })
+function getRedis(key){
+    let res
+    redis.get('kline',(error,data)=>{
+       res = data
+    })
+    return res
+}
 app.post('/getAllKLine', (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
-    let sql = `select * from kline`
-    console.log(sql);
-    if(stock['daykline']){
-        if(type=='chudbl'){
-            const arr = stock['daykline'].filter(item=>item.chudbl)
-            const total = arr.length
-            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }
-        if(type=='chaodbl'){
-            const arr = stock['daykline'].filter(item=>item.chaodbl)
-            const total = arr.length
-            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }
-        if(type.indexOf('alllianban-')>-1){
-            const i = type.split('-')[1]-1||2
-            const arr = stock['daykline'].filter(item=>item.lianban.length>i)
-            const total = arr.length
-            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }
-        if(!type||type=='all'){
-            const arr = stock['daykline']
-            const total = arr.length
-            let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }
 
-    }else {
-        conn(sql).then(re=>{
-            let Dbl = new diBeiLi(re,type)
-            let all = Dbl.getKline()
-            stock['daykline'] = all
-            if(type=='chudbl'){
-                const arr = stock['daykline'].filter(item=>item.chudbl)
-                const total = arr.length
-                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-            }
-            if(type=='chaodbl'){
-                const arr = stock['daykline'].filter(item=>item.chaodbl)
-                const total = arr.length
-                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-            }
-            if(type.indexOf('alllianban-')>-1){
-                const i = type.split('-')[1]-1||2
-                const arr = stock['daykline'].filter(item=>item.lianban.length>i)
-                const total = arr.length
-                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-            }
-            if(!type||type=='all'){
-                const arr = stock['daykline']
-                const total = arr.length
-                let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-                res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-            }
-        }).catch(e=>{
-            res.json(new Result({data:e,msg:'查询error'}))
-
+    const kline = JSON.parse(getRedis('kline'))
+    const kline_30m = JSON.parse(getRedis('kline_30m'))
+    const kline_week = JSON.parse(getRedis('kline_week'))
+    const kline_60m = JSON.parse(getRedis('kline_60m'))
+    if(kline){
+        let arr = Object.values(kline)
+        console.log(arr);
+        let total= arr.length
+        let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
+        const r =  list.map(item=>{
+            item['kweek'] = kline_week[item.code]
+            item['k30m'] = kline_30m[item.code]
+            item['k60'] = kline_60m[item.code]
+            return item
         })
-    }
-})
-app.post('/getMinKLine', (req, res) => {
-    let {code,time=30}  = req.body
-    if(time == 30){
-        let sql = `select * from kline_30m where share_code = ${code}`
-    }else if(time==60){
-        let sql = `select * from kline_6m where share_code = ${code}`
-    }
-    let sql = `select * from kline_30m where share_code = ${code}`
-    console.log(sql);
-    if(stock['type']){
-        const total = stock[type].length
-        let list = stock[type].slice((pageNum-1)*pageSize,pageNum*pageSize)
-        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+        res.json(new Result({data:{list:r,pageNum,pageSize,total},msg:'查询成功',}))
     }else {
-        conn(sql).then(re=>{
-            let Dbl = new diBeiLi(re,type)
-            let all = Dbl.getKline()
-            let total = all.length
-            stock[type] = all
-            let list = all.slice((pageNum-1)*pageSize,pageNum*pageSize)
-            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
-        }).catch(e=>{
-            res.json(new Result({data:e,msg:'查询error'}))
+        res.json(new Result({data:{list:[],pageNum,pageSize,total},msg:'查询成功',}))
 
-        })
     }
+
 })
+
 
 function computeAll(){
-    const tables = [' kline',' kline_week',' kline_120m',' kline_60m',' kline_30m']
-  
+    const tables = ['kline','kline_week','kline_60m','kline_30m']
+    console.log('all is start')
+    redis.set('sss',666)
+
+
     const promise = []
     tables.forEach(item=>{
-        promise.push(conn('select * from '+item))
+        promise.push(conn('select * from    '+' '+item))
     })
     Promise.all(promise).then(resList=>{
-    
+        console.log('all is get')
         resList.forEach((res,index)=>{
-            if(res&&res.length){
+            console.log(res.length);
+            if(res&&Array.isArray(res)){
                 let Dbl = new diBeiLi(res,'all')
                 let all = Dbl.getKline()
-                stock[tables[index]] = all
+                obj = {}
+                all.forEach(item=>{
+                    obj[item.code] = item
+                })
+                redis.set(tables[index],JSON.stringify(obj))
+            }
+            if(index==resList.length-1){
+                console.log('all is complte')
             }
         })
+    }).catch(e=>{
+        console.log(e)
     })
 
 }
