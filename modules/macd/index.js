@@ -250,20 +250,14 @@ app.get('/getKLine', (req, res) => {
 
     })
 })
-function getRedis(key){
-    let res
-    redis.get('kline',(error,data)=>{
-       res = data
-    })
-    return res
-}
-app.post('/getAllKLine', (req, res) => {
+
+app.post('/getAllKLine', async (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
 
-    const kline = JSON.parse(getRedis('kline'))
-    const kline_30m = JSON.parse(getRedis('kline_30m'))
-    const kline_week = JSON.parse(getRedis('kline_week'))
-    const kline_60m = JSON.parse(getRedis('kline_60m'))
+    const kline = JSON.parse(await redis.getKey('kline'))
+    const kline_30m = JSON.parse(await redis.getKey('kline_30m'))
+    const kline_week = JSON.parse(await redis.getKey('kline_week'))
+    const kline_60m = JSON.parse(await redis.getKey('kline_60m'))
     if(kline){
         let arr = Object.values(kline)
         console.log(arr);
@@ -287,16 +281,13 @@ app.post('/getAllKLine', (req, res) => {
 function computeAll(){
     const tables = ['kline','kline_week','kline_60m','kline_30m']
     console.log('all is start')
-    redis.set('sss',666)
-
-
     const promise = []
     tables.forEach(item=>{
         promise.push(conn('select * from    '+' '+item))
     })
     Promise.all(promise).then(resList=>{
         console.log('all is get')
-        resList.forEach((res,index)=>{
+        resList.forEach(async (res,index)=>{
             console.log(res.length);
             if(res&&Array.isArray(res)){
                 let Dbl = new diBeiLi(res,'all')
@@ -305,7 +296,7 @@ function computeAll(){
                 all.forEach(item=>{
                     obj[item.code] = item
                 })
-                redis.set(tables[index],JSON.stringify(obj))
+                await redis.setKey(tables[index],JSON.stringify(obj))
             }
             if(index==resList.length-1){
                 console.log('all is complte')
