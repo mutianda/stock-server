@@ -279,7 +279,9 @@ app.post('/getAllKLine', async (req, res) => {
 
 
 function computeAll(){
-    const tables = ['kline','kline_week','kline_60m','kline_30m']
+    // const tables = ['kline','kline_week','kline_60m','kline_30m']
+    const tables = ['kline']
+
     console.log('all is start')
     const promise = []
     tables.forEach(item=>{
@@ -287,19 +289,27 @@ function computeAll(){
     })
     Promise.all(promise).then(resList=>{
         console.log('all is get')
-        resList.forEach(async (res,index)=>{
+        let obj = {}
+        resList.map((res,index)=>{
             console.log(res.length);
+
             if(res&&Array.isArray(res)){
                 let Dbl = new diBeiLi(res,'all')
                 let all = Dbl.getKline()
-                obj = {}
+                const str = tables[index]
                 all.forEach(item=>{
-                    obj[item.code] = item
+                    if(!obj[item.code]){
+                        obj[item.code] = {}
+                    }
+                    obj[item.code][str] = item
                 })
-                await redis.setKey(tables[index],JSON.stringify(obj))
+
             }
-            if(index==resList.length-1){
-                console.log('all is complte')
+        })
+        Object.keys(obj).map(async (res,index)=>{
+            await redis.setKey(res,JSON.stringify(obj[res]))
+            if(index==res.length-1){
+                console.log('redis-in-all')
             }
         })
     }).catch(e=>{
