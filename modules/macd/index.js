@@ -307,9 +307,8 @@ function computeAll(){
             }
         })
         Object.keys(obj).map(async (res,index)=>{
-            await redis.setKey(res,JSON.stringify(obj[res]))
-            if(index==res.length-1){
-                console.log('redis-in-all')
+            if(index<10){
+                await redis.setKey(res,JSON.stringify(obj[res].code||{}))
             }
         })
     }).catch(e=>{
