@@ -74,23 +74,23 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 18 20  *  * 1-6', ()=>{
+    schedule.scheduleJob('23 43 0  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
         conn('truncate kline').then(res=>{
-            let sqlday = `INSERT INTO kline ( today_time , share_code,  kline,share_name) VALUES `
+            let sqlday = `INSERT INTO kline ( today_time , share_code,  kline,share_name,macd,dbl,chudbl,chaodbl,lianban,last,lianbanlength) VALUES `
             getAllKLine(101,sqlday)
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 18 23  *  * 1-6', ()=>{
+    schedule.scheduleJob('23 46 0  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
 
         conn('truncate kline_week').then(res=>{
-            let sqlweek = `INSERT INTO kline_week ( today_time , share_code,  kline,share_name) VALUES `
+            let sqlweek = `INSERT INTO kline_week ( today_time , share_code,  kline,share_name,macd,dbl,chudbl,chaodbl,lianban,last,lianbanlength) VALUES `
             getAllKLine(102,sqlweek)
         })
     })
@@ -105,24 +105,24 @@ const getAllKLineLx = ()=>{
     //     })
     // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 3 20  *  * 1-6', ()=>{
+    schedule.scheduleJob('23 49 0  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
 
         conn('truncate kline_30m').then(res=>{
-            let sql30 = `INSERT INTO kline_30m ( today_time , share_code,  kline,share_name) VALUES `
+            let sql30 = `INSERT INTO kline_30m ( today_time , share_code,  kline,share_name,macd,dbl,chudbl,chaodbl,lianban,last,lianbanlength) VALUES `
 
             getAllKLine(30,sql30)
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 58 19  *  * 1-6', ()=>{
+    schedule.scheduleJob('23 52 0  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
         conn('truncate kline_60m').then(res=>{
-            let sql60 = `INSERT INTO kline_60m ( today_time , share_code,  kline,share_name) VALUES `
+            let sql60 = `INSERT INTO kline_60m ( today_time , share_code,  kline,share_name,macd,dbl,chudbl,chaodbl,lianban,last,lianbanlength) VALUES `
             getAllKLine(60,sql60)
         })
     })
@@ -130,7 +130,7 @@ const getAllKLineLx = ()=>{
 // getAllTodayMoneyKLineLx()
 // getAllRecentLineLx()
 getAllKLineLx()
-computeAll()
+// computeAll()
 
 function getAllShareCode() {
     const sql = "SELECT share_code FROM share"
@@ -167,7 +167,7 @@ async function getAllKLine(t,sql) {
 }
 function doAllKLinePromise(n,list,t,sql){
     let prom = []
-    for(var i = 0;i<400;i++){
+    for(var i = 0;i<200;i++){
         let code = ''
         if(list[n+i]){
             let item = list[n+i]
@@ -187,7 +187,7 @@ function doAllKLinePromise(n,list,t,sql){
             getKLine(resu,sql).then(res=>{
                 if(n<list.length){
                     console.log('进行了n次',n)
-                    doAllKLinePromise(n+400,list,t,sql)
+                    doAllKLinePromise(n+200,list,t,sql)
                 }else {
 
                 }
@@ -208,18 +208,24 @@ function getKLine(list,sql){
                 let a = res.indexOf('(')
                 let b =res.lastIndexOf(')')
                 res = res.slice(a+1,b)
-                console.log('进行了一次')
+
                 const data =JSON.parse(res)
+                console.log(data.data.name+'进行了一次')
                 let klines = JSON.stringify(data.data.klines)
-                console.log('name'+data.data.name+'k线更新')
+                let dblObj = new diBeiLi([{share_name:data.data.name,share_code:data.data.code,kline:klines}])
+                let macdList = dblObj.getKline()
+                const { macd,dbl,chudbl,chaodbl,lianban,last,lianbanLength,kline} =macdList[0]
                 const today_time = time.y+'-'+time.m+'-'+time.d+'  '+time.h+':'+time.min+':'+time.s
                 if(index==0){
-                    sql2+=`(${'\''+today_time +'\''},${'\''+data.data.code+'\''}, ${'\'' + klines + '\''},${'\'' + data.data.name + '\''} )`
+                    sql2+=`(${'\''+today_time +'\''},${'\''+data.data.code+'\''}, ${'\'' + JSON.stringify(kline) + '\''},${'\'' + data.data.name + '\''} ,
+                    ${'\'' + JSON.stringify(macd) + '\''},${'\'' + (dbl?1:0) + '\''},${'\'' + (chudbl?1:0) + '\''},${'\'' + (chaodbl?1:0 )+ '\''},${'\'' + JSON.stringify(lianban) + '\''},
+                    ${'\'' + JSON.stringify(last) + '\''},${'\'' + lianbanLength + '\''})`
 
 
                 }else {
-
-                    sql2+=`, (${'\''+today_time +'\''},${'\''+data.data.code+'\''}, ${'\'' + klines + '\''},${'\'' + data.data.name + '\''} )`
+                    sql2+=`, (${'\''+today_time +'\''},${'\''+data.data.code+'\''}, ${'\'' + JSON.stringify(kline) + '\''},${'\'' + data.data.name + '\''} ,
+                    ${'\'' + JSON.stringify(macd) + '\''},${'\'' + (dbl?1:0) + '\''},${'\'' + (chudbl?1:0) + '\''},${'\'' + (chaodbl?1:0 )+ '\''},${'\'' + JSON.stringify(lianban) + '\''},
+                    ${'\'' + JSON.stringify(last) + '\''},${'\'' + lianbanLength + '\''})`
 
                 }
             }
@@ -227,7 +233,7 @@ function getKLine(list,sql){
 
         conn(sql2).then(r2=>{
             resolve(r2)
-            console.log(r2)
+            console.log('wancheng')
 
         }).catch(e=>{
                 resolve(e)
@@ -253,27 +259,36 @@ app.get('/getKLine', (req, res) => {
 
 app.post('/getAllKLine', async (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
-
-    const kline = JSON.parse(await redis.getKey('kline'))
-    const kline_30m = JSON.parse(await redis.getKey('kline_30m'))
-    const kline_week = JSON.parse(await redis.getKey('kline_week'))
-    const kline_60m = JSON.parse(await redis.getKey('kline_60m'))
-    if(kline){
-        let arr = Object.values(kline)
-        console.log(arr);
-        let total= arr.length
-        let list = arr.slice((pageNum-1)*pageSize,pageNum*pageSize)
-        const r =  list.map(item=>{
-            item['kweek'] = kline_week[item.code]
-            item['k30m'] = kline_30m[item.code]
-            item['k60'] = kline_60m[item.code]
+    let sql
+    if(type.indexOf('alllianban-')>-1){
+        const l = type.split('-')[1]
+        sql = 'select * from kline where lianbanlength > '+l
+    }
+    if(type=='dbl'){
+        sql = 'select * from kline where dbl =1 '
+    }
+    if(type=='chaodbl'){
+        sql = 'select * from kline where chaodbl =1 '
+    }
+    if(type=='chudbl'){
+        sql = 'select * from kline where chudbl =1 '
+    }
+    conn(sql).then(r=>{
+        let arr = r.slice((pageNum-1)*pageSize,pageNum*pageSize)
+        const list = arr.map(item=>{
+            item.kline = JSON.parse(item.kline)
+            item.code = item.share_code
+            item.name = item.share_name
+            item.macd = JSON.parse(item.macd)
+            item.last = JSON.parse(item.last)
+            item.lianban = JSON.parse(item.lianban)
             return item
         })
-        res.json(new Result({data:{list:r,pageNum,pageSize,total},msg:'查询成功',}))
-    }else {
-        res.json(new Result({data:{list:[],pageNum,pageSize,total},msg:'查询成功',}))
-
-    }
+        let total = r.length
+        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+    }).catch(e=>{
+        res.json(new Result({data:e,msg:'查询失败',}))
+    })
 
 })
 

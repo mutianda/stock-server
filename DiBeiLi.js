@@ -21,7 +21,7 @@
                 item.kline.forEach((it,index)=>{
                     if(index<item.kline.length-1){
                         if(it.risePrecent>9.6){
-                            arr.push({...it})
+                            arr.push({time:it.time})
                         }else {
                             l = arr.length>l.length?[...arr]:l
                             arr = []
@@ -33,6 +33,7 @@
                 return {
                     ...item,
                     lianban:l,
+                    lianbanLength:l.length,
                     ...dbl
                 }
 
