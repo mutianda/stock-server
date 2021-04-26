@@ -245,7 +245,10 @@ function getKLine(list,sql){
 
 }
 app.get('/getKLine', (req, res) => {
-    let {shareCode=''} = req.query
+    let {t='30',shareCode=''} = req.query
+    if(t=='30'){
+
+    }
     let sql = `select * from kline where share_code = '${shareCode}' `
     console.log(sql);
     conn(sql).then(re=>{
