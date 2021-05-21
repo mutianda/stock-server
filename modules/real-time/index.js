@@ -71,7 +71,16 @@ function realTimeShare(resu){
 `
         };
         arr.sort((a,b)=>b.f170-a.f170).forEach(it=>{
-            mailOptions.html+=`<div><span>名称：${it.f58}</span><span style="color: ${it.f170>0?'red':'green'}">最新价：${it.f43}</span><span style="color: ${it.f170>0?'red':'green'}">涨幅：${it.f170}%</span></div>`
+            mailOptions.html+=`
+<div style="margin: 5px 10px">
+<span style="color: ${it.desc == 'B' ? 'red' : 'green'}">${it.desc == 'B' ? '买' : '卖'}</span>
+<span>名称：${it.f58}</span><span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
+最新价：${it.f43}</span>
+<span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
+涨幅：${it.f170}%</span>
+<span style="color: blueviolet">突破价：${it.price_rise}</span>
+<span style="color: #98f17f">跌破价：${it.price_down}</span>
+</div>`
         })
         console.log(mailOptions);
         email.sendMail(mailOptions, function (err, info) {
