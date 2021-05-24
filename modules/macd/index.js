@@ -74,7 +74,7 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 43 0  *  * *', ()=>{
+    schedule.scheduleJob('23 05 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -84,7 +84,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 46 0  *  * *', ()=>{
+    schedule.scheduleJob('23 09 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -105,7 +105,7 @@ const getAllKLineLx = ()=>{
     //     })
     // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 49 0  *  * *', ()=>{
+    schedule.scheduleJob('23 13 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -117,7 +117,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 52 0  *  * *', ()=>{
+    schedule.scheduleJob('23 17 21 *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -244,16 +244,20 @@ function getKLine(list,sql){
     })
 
 }
-app.get('/getKLine', (req, res) => {
-    let {t='30',shareCode=''} = req.query
-    if(t=='30'){
-
-    }
-    let sql = `select * from kline where share_code = '${shareCode}' `
-    console.log(sql);
+app.post('/getKLine', (req, res) => {
+    let {type='kline',shareCode=''} = req.body
+    let sql = `select * from ${type} where share_code = '${shareCode}' `
     conn(sql).then(re=>{
-
-        res.json(new Result({data:re,msg:'查询成功'}))
+        const list = re.map(item=>{
+            item.kline = JSON.parse(item.kline)
+            item.code = item.share_code
+            item.name = item.share_name
+            item.macd = JSON.parse(item.macd)
+            item.last = JSON.parse(item.last)
+            item.lianban = JSON.parse(item.lianban)
+            return item
+        })
+        res.json(new Result({data:list[0],msg:'查询成功'}))
     }).catch(e=>{
         res.json(new Result({data:e,msg:'查询error'}))
 
@@ -262,22 +266,34 @@ app.get('/getKLine', (req, res) => {
 
 app.post('/getAllKLine', async (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
-    let sql
+    let sql='select A.*,' +
+        'B.dbl AS 60m_dbl,B.chudbl AS 60m_chudbl,B.chaodbl AS 60m_chaodbl,' +
+        'C.dbl AS 30m_dbl,C.chudbl AS 30m_chudbl,C.chaodbl AS 30m_chaodbl,' +
+        'D.dbl AS week_dbl,D.chudbl AS week_chudbl,D.chaodbl AS week_chaodbl ' +
+        'from kline A '
+        + ' LEFT JOIN kline_60m B ON B.share_code = A.share_code  '
+        +    ' LEFT JOIN kline_30m C ON C.share_code = A.share_code  '
+        +    ' LEFT JOIN kline_week D ON D.share_code = A.share_code  '
+
+
+
     if(type.indexOf('alllianban-')>-1){
         const l = type.split('-')[1]
-        sql = 'select * from kline where lianbanlength > '+l
+        sql += ' where A.lianbanlength > '+l
     }
     if(type=='dbl'){
-        sql = 'select * from kline where dbl =1 '
+        sql +=
+            ' where A.dbl =1 '
     }
     if(type=='chaodbl'){
-        sql = 'select * from kline where chaodbl =1 '
+        sql += ' where A.chaodbl =1 '
     }
     if(type=='chudbl'){
-        sql = 'select * from kline where chudbl =1 '
+        sql += ' where A.chudbl =1 '
     }
+    sql+= (' limit '+(pageNum-1)*pageSize+','+pageNum*pageSize)
     conn(sql).then(r=>{
-        let arr = r.slice((pageNum-1)*pageSize,pageNum*pageSize)
+        let arr = r
         const list = arr.map(item=>{
             item.kline = JSON.parse(item.kline)
             item.code = item.share_code
