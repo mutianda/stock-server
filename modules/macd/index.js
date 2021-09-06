@@ -1,4 +1,4 @@
-var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,redis} = require("../../index.js");
+var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,} = require("../../index.js");
 const getTodayRiseLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
@@ -340,11 +340,11 @@ function computeAll(){
 
             }
         })
-        Object.keys(obj).map(async (res,index)=>{
-            if(index<10){
-                await redis.setKey(res,JSON.stringify(obj[res].code||{}))
-            }
-        })
+        // Object.keys(obj).map(async (res,index)=>{
+        //     if(index<10){
+        //         await redis.setKey(res,JSON.stringify(obj[res].code||{}))
+        //     }
+        // })
     }).catch(e=>{
         console.log(e)
     })

@@ -1,5 +1,5 @@
 var conn=require("./mysql.js");
-var redis=require("./redis.js");
+// var redis=require("./redis.js");
 var fs  = require("fs");
 var express = require('express');
 var diBeiLi = require('./DiBeiLi.js')
@@ -44,4 +44,4 @@ function Result ({ code = 1, msg = '', data = '' }) {
     this.msg = msg;
     this.data = data;
 }
-module.exports = { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,redis}
+module.exports = { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,}

@@ -10,8 +10,73 @@ const realTimePush=()=>{
         getRealTime()
 
     })
+    schedule.scheduleJob('30  27 19 * * 1-5', ()=>{
+        getDblEmail()
+    })
 }
+getDblEmail = ()=>{
+    let sql='select A.*,' +
+        'B.dbl AS 60m_dbl,B.chudbl AS 60m_chudbl,B.chaodbl AS 60m_chaodbl,' +
+        'C.dbl AS 30m_dbl,C.chudbl AS 30m_chudbl,C.chaodbl AS 30m_chaodbl,' +
+        'D.dbl AS week_dbl,D.chudbl AS week_chudbl,D.chaodbl AS week_chaodbl ' +
+        'from kline A '
+        + ' LEFT JOIN kline_60m B ON B.share_code = A.share_code  '
+        +    ' LEFT JOIN kline_30m C ON C.share_code = A.share_code  '
+        +    ' LEFT JOIN kline_week D ON D.share_code = A.share_code  '
 
+
+
+    sql += ' where A.chaodbl =1 or A.chudbl =1  '
+    sql+= (' limit 0 , 100')
+    conn(sql).then(r=>{
+        let arr = r
+        const list = arr.map(item=>{
+            item.kline = JSON.parse(item.kline)
+            item.code = item.share_code
+            item.name = item.share_name
+            item.macd = JSON.parse(item.macd)
+            item.last = JSON.parse(item.last)
+            item.lianban = JSON.parse(item.lianban)
+            return item
+        })
+
+        if(list.length){
+
+                var mailOptions = {
+                    from: '横断万股<270947682@qq.com>', // 发送者
+                    sender:'股票分析',
+                    to: 'qingyi.zongbu@qq.com', // 接受者,可以同时发送多个,以逗号隔开
+                    subject: '底背分析', // 标题
+                    //text: 'Hello world', // 文本
+                    html: `<h2>底背离:</h2>
+`
+                };
+                list.sort((a,b)=>b.last.risePrecent-a.last.risePrecent).sort((a,b)=>b.chudbl-a.chudbl).sort((a,b)=>b.chaodbl-a.chaodbl).forEach(it=>{
+                    mailOptions.html+=`
+                    <div style="margin: 5px 10px;border-bottom: .1px solid #eee;line-height: 20px;background: #fff">
+                    <span style="font-size: 20px">${it.share_name}</span>
+                    <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">涨幅：${it.last.risePrecent}%</span>
+                    <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">最新价：${it.last.close}</span>
+                    </br>
+                    <span style="color:darkred }"> ${it.chudbl ? '初底背离--' : ''}</span>
+                    <span style="color:#bb0d0d"> ${it.chaodbl ? '超底背离' : ''}</span>
+                    </div>`
+                })
+                console.log(mailOptions);
+                email.sendMail(mailOptions, function (err, info) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    console.log('发送了')
+                })
+            }
+
+
+    }).catch(e=>{
+        res.json(new Result({data:e,msg:'查询失败',}))
+    })
+}
 getRealTime = ()=>{
     const sql = "SELECT * FROM real_time"
     return new Promise((reslove,reject)=>{
@@ -58,7 +123,7 @@ function realTimeShare(resu){
         console.log(arr,'arr');
         socket.emit('realTimeStock',arr)
         times++
-        if(times>30){
+        if(times>2){
 
          times=0
         var mailOptions = {
