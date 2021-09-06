@@ -127,7 +127,7 @@ function realTimeShare(resu){
 
          times=0
         var mailOptions = {
-            from: '270947682@qq.com', // 发送者
+            from: '横断万股<270947682@qq.com>', // 发送者
             sender:'股票分析',
             to: 'qingyi.zongbu@qq.com', // 接受者,可以同时发送多个,以逗号隔开
             subject: '分析', // 标题
