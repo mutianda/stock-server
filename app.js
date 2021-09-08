@@ -3,6 +3,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs }  = require('./ind
 var realTimePush = require('./modules/real-time/index.js')
 require('./modules/common/index.js')
 require('./modules/macd/index.js')
+require('./modules/charts/index')
 let login = true;
 realTimePush()
 // 每分钟的第30秒触发： '30 * * * * *'

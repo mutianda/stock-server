@@ -10,7 +10,7 @@ const realTimePush=()=>{
         getRealTime()
 
     })
-    schedule.scheduleJob('30  1 22 * * 1-5', ()=>{
+    schedule.scheduleJob('30  13 22,8 * * 1-5', ()=>{
         getDblEmail()
     })
 }
