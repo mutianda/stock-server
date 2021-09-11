@@ -74,7 +74,7 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 05 21  *  * *', ()=>{
+    schedule.scheduleJob('23 38 9  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -84,7 +84,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 09 21  *  * *', ()=>{
+    schedule.scheduleJob('23 42 9  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -105,7 +105,7 @@ const getAllKLineLx = ()=>{
     //     })
     // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 13 21  *  * *', ()=>{
+    schedule.scheduleJob('23 26 10  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -117,7 +117,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 17 21 *  * *', ()=>{
+    schedule.scheduleJob('23  23 10 *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -247,70 +247,86 @@ function getKLine(list,sql){
 app.post('/getKLine', (req, res) => {
     let {type='kline',shareCode=''} = req.body
     let sql = `select * from ${type} where share_code = '${shareCode}' `
+    console.log(sql);
     conn(sql).then(re=>{
-        const list = re.map(item=>{
-            item.kline = JSON.parse(item.kline)
-            item.code = item.share_code
-            item.name = item.share_name
-            item.macd = JSON.parse(item.macd)
-            item.last = JSON.parse(item.last)
-            item.lianban = JSON.parse(item.lianban)
-            return item
-        })
-        res.json(new Result({data:list[0],msg:'查询成功'}))
+
+        if(re.length){
+            const list = re.map(item=>{
+                item.kline = JSON.parse(item.kline)
+                item.code = item.share_code
+                item.name = item.share_name
+                item.macd = JSON.parse(item.macd)
+                item.last = JSON.parse(item.last)
+                item.lianban = type=='kline'?JSON.parse(item.lianban):[]
+                return item
+            })
+
+            res.json(new Result({data:list[0],msg:'查询成功'}))
+        }else {
+            res.json(new Result({data:re,msg:'查询成功',code:500}))
+        }
+
     }).catch(e=>{
-        res.json(new Result({data:e,msg:'查询error'}))
+        res.json(new Result({data:e,msg:'查询error',code:500}))
 
     })
 })
 
 app.post('/getAllKLine', async (req, res) => {
     let {type,pageSize=100,pageNum=1,}  = req.body
-    let sql='select A.*,' +
+    let sql='select A.share_code,A.share_name,A.today_time,A.id,A.dbl,A.chaodbl,A.chudbl,A.lianban,A.last,A.lianbanlength, '+
         'B.dbl AS 60m_dbl,B.chudbl AS 60m_chudbl,B.chaodbl AS 60m_chaodbl,' +
         'C.dbl AS 30m_dbl,C.chudbl AS 30m_chudbl,C.chaodbl AS 30m_chaodbl,' +
         'D.dbl AS week_dbl,D.chudbl AS week_chudbl,D.chaodbl AS week_chaodbl ' +
         'from kline A '
         + ' LEFT JOIN kline_60m B ON B.share_code = A.share_code  '
         +    ' LEFT JOIN kline_30m C ON C.share_code = A.share_code  '
-        +    ' LEFT JOIN kline_week D ON D.share_code = A.share_code  '
+        +    ' LEFT JOIN kline_week D ON D.share_code = A.share_code  where 1>0 '
+    let sql2 = 'select count(*) from kline  where 1>0 '
 
-
-
-    if(type.indexOf('alllianban-')>-1){
+    if(type.indexOf('lianban-')>-1){
         const l = type.split('-')[1]
-        sql += ' where A.lianbanlength > '+l
+        sql += ' and A.lianbanlength > '+l
+        sql2+=' and lianbanlength > '+l
     }
-    if(type=='dbl'){
-        sql +=
-            ' where A.dbl =1 '
+    if(type.indexOf('dbl')>-1){
+        sql += ' and  A.dbl =1 '
+        sql2 += ' and dbl =1 '
     }
     if(type=='chaodbl'){
-        sql += ' where A.chaodbl =1 '
+        sql += ' and A.chaodbl =1 '
+        sql2+=' and chaodbl =1 '
     }
     if(type=='chudbl'){
-        sql += ' where A.chudbl =1 '
+        sql += ' and A.chudbl =1 '
+        sql2 += ' and chudbl =1 '
     }
+    let countres = await getSqlRes(sql2)
     sql+= (' limit '+(pageNum-1)*pageSize+','+pageNum*pageSize)
-    conn(sql).then(r=>{
-        let arr = r
-        const list = arr.map(item=>{
-            item.kline = JSON.parse(item.kline)
-            item.code = item.share_code
-            item.name = item.share_name
-            item.macd = JSON.parse(item.macd)
-            item.last = JSON.parse(item.last)
-            item.lianban = JSON.parse(item.lianban)
-            return item
-        })
-        let total = r.length
-        res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+    console.log(sql);
+    conn(sql).then(async r=>{
+        console.log(r.length);
+            let arr = r
+            console.log(countres);
+            const list = arr.map(item=>{
+                item.code = item.share_code
+                item.name = item.share_name
+                item.last = JSON.parse(item.last)
+                item.lianban = JSON.parse(item.lianban)
+                return item
+            })
+            let total = countres[0]['count(*)']
+            res.json(new Result({data:{list,pageNum,pageSize,total},msg:'查询成功',}))
+
     }).catch(e=>{
         res.json(new Result({data:e,msg:'查询失败',}))
     })
 
 })
+async function getSqlRes(sql) {
+     return conn(sql)
 
+}
 
 function computeAll(){
     // const tables = ['kline','kline_week','kline_60m','kline_30m']

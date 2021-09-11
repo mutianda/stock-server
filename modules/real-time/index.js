@@ -10,12 +10,13 @@ const realTimePush=()=>{
         getRealTime()
 
     })
-    schedule.scheduleJob('30  13 22,8 * * 1-5', ()=>{
+    schedule.scheduleJob('30 24 22,17,8 * * 1-6', ()=>{
         getDblEmail()
     })
 }
+
 getDblEmail = ()=>{
-    let sql='select A.*,' +
+    let sql='select  A.share_code,A.share_name,A.today_time,A.id,A.dbl,A.chaodbl,A.chudbl,A.lianban,A.last,A.lianbanlength,' +
         'B.dbl AS 60m_dbl,B.chudbl AS 60m_chudbl,B.chaodbl AS 60m_chaodbl,' +
         'C.dbl AS 30m_dbl,C.chudbl AS 30m_chudbl,C.chaodbl AS 30m_chaodbl,' +
         'D.dbl AS week_dbl,D.chudbl AS week_chudbl,D.chaodbl AS week_chaodbl ' +
@@ -24,17 +25,14 @@ getDblEmail = ()=>{
         +    ' LEFT JOIN kline_30m C ON C.share_code = A.share_code  '
         +    ' LEFT JOIN kline_week D ON D.share_code = A.share_code  '
 
-
-
     sql += ' where A.chaodbl =1 or A.chudbl =1  '
-    sql+= (' limit 0 , 100')
+    sql+= (' limit 0 , 1000')
     conn(sql).then(r=>{
         let arr = r
+        console.log(r);
         const list = arr.map(item=>{
-            item.kline = JSON.parse(item.kline)
             item.code = item.share_code
             item.name = item.share_name
-            item.macd = JSON.parse(item.macd)
             item.last = JSON.parse(item.last)
             item.lianban = JSON.parse(item.lianban)
             return item
@@ -54,7 +52,7 @@ getDblEmail = ()=>{
                 list.sort((a,b)=>b.last.risePrecent-a.last.risePrecent).sort((a,b)=>b.chudbl-a.chudbl).sort((a,b)=>b.chaodbl-a.chaodbl).forEach(it=>{
                     mailOptions.html+=`
                     <div style="margin: 5px 10px;border-bottom: .1px solid #eee;line-height: 20px;background: #fff">
-                    <span style="font-size: 20px">${it.share_name}</span>
+                    <a style="font-size: 20px" href="http://120.26.62.101:3399/html?code=${it.share_code}">${it.share_name}</a>
                     <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">涨幅：${it.last.risePrecent}%</span>
                     <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">最新价：${it.last.close}</span>
                     </br>
@@ -74,9 +72,10 @@ getDblEmail = ()=>{
 
 
     }).catch(e=>{
-        res.json(new Result({data:e,msg:'查询失败',}))
+      console.log(e)
     })
 }
+getDblEmail()
 getRealTime = ()=>{
     const sql = "SELECT * FROM real_time"
     return new Promise((reslove,reject)=>{
