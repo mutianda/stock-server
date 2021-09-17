@@ -18,8 +18,8 @@
 	var myChart2 = echarts.init(dom2);
 	const input = document.getElementById('inputV')
 	const {op1,op2} = JSON.parse(input.value)
-	console.log(op1);
-	console.log(typeof op1)
+
+
 	if (op1 && typeof op2 === "object") {
 		setTimeout(()=>{
 			myChart.setOption(op1, true);

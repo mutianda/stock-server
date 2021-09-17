@@ -3,7 +3,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("
 var realTimeList=[]
 var times =0
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/2 9-14 * * 1-5', ()=>{
+    schedule.scheduleJob('30  0/3 9-18 * * 1-5', ()=>{
         let {m,d,h,min,s} = getTime()
         realTimeList = []
         console.log('推送')
@@ -29,7 +29,6 @@ getDblEmail = ()=>{
     sql+= (' limit 0 , 1000')
     conn(sql).then(r=>{
         let arr = r
-        console.log(r);
         const list = arr.map(item=>{
             item.code = item.share_code
             item.name = item.share_name
@@ -52,15 +51,16 @@ getDblEmail = ()=>{
                 list.sort((a,b)=>b.last.risePrecent-a.last.risePrecent).sort((a,b)=>b.chudbl-a.chudbl).sort((a,b)=>b.chaodbl-a.chaodbl).forEach(it=>{
                     mailOptions.html+=`
                     <div style="margin: 5px 10px;border-bottom: .1px solid #eee;line-height: 20px;background: #fff">
-                    <a style="font-size: 20px" href="http://120.26.62.101:3399/html?code=${it.share_code}">${it.share_name}</a>
+                    <a style="font-size: 20px" href="http://onlinestock.cn/html?code=${it.share_code}">${it.share_name}</a>
                     <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">涨幅：${it.last.risePrecent}%</span>
                     <span style="color: ${it.last.risePrecent > 0 ? 'red' : 'green'}">最新价：${it.last.close}</span>
                     </br>
                     <span style="color:darkred }"> ${it.chudbl ? '初底背离--' : ''}</span>
                     <span style="color:#bb0d0d"> ${it.chaodbl ? '超底背离' : ''}</span>
+                    <iframe src="http://onlinestock.cn/html?code=${it.share_code}" frameBorder="0" width="400"  scrolling="no" height="30"></iframe>
                     </div>`
                 })
-                console.log(mailOptions);
+
                 email.sendMail(mailOptions, function (err, info) {
                     if (err) {
                         console.log(err);
@@ -75,7 +75,7 @@ getDblEmail = ()=>{
       console.log(e)
     })
 }
-getDblEmail()
+
 getRealTime = ()=>{
     const sql = "SELECT * FROM real_time"
     return new Promise((reslove,reject)=>{
@@ -102,7 +102,7 @@ getRealTime = ()=>{
         )
     })
 }
-
+getRealTime()
 function realTimeShare(resu){
     const arr = []
       resu.forEach(res=>{
@@ -112,17 +112,17 @@ function realTimeShare(resu){
           const {data} = JSON.parse(res)
           const share = realTimeList.find(item=>item.share_code==data.f57)
           if(share.price_rise&&share.price_rise<data.f43){
-              arr.push({...data,...share,desc:'B',pushType:'up'})
+              arr.push({...data,...share,desc:'B',pushType:'up',code:share.share_code,name:share.share_name,lastPrice:data.f43,lastRise:data.f170})
           }
           if(share.price_down&&share.price_down>data.f43){
-              arr.push({...data,...share,desc:'S',pushType:'down'})
+              arr.push({...data,...share,desc:'S',pushType:'down',code:share.share_code,name:data.f58,lastPrice:data.f43,lastRise:data.f170})
           }
       })
     if(arr.length){
-        console.log(arr,'arr');
+
         socket.emit('realTimeStock',arr)
         times++
-        if(times>2){
+        if(times>10){
 
          times=0
         var mailOptions = {
@@ -136,17 +136,17 @@ function realTimeShare(resu){
         };
         arr.sort((a,b)=>b.f170-a.f170).forEach(it=>{
             mailOptions.html+=`
-<div style="margin: 5px 10px">
-<span style="color: ${it.desc == 'B' ? 'red' : 'green'}">${it.desc == 'B' ? '买' : '卖'}</span>
-<span>名称：${it.f58}</span><span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
-最新价：${it.f43}</span>
-<span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
-涨幅：${it.f170}%</span>
-<span style="color: blueviolet">突破价：${it.price_rise}</span>
-<span style="color: #98f17f">跌破价：${it.price_down}</span>
-</div>`
+            <div style="margin: 5px 10px">
+            <span style="color: ${it.desc == 'B' ? 'red' : 'green'}">${it.desc == 'B' ? '买' : '卖'}</span>
+            <span>名称：${it.f58}</span><span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
+            最新价：${it.f43}</span>
+            <span style="color: ${it.f170 > 0 ? 'red' : 'green'}">
+            涨幅：${it.f170}%</span>
+            <span style="color: blueviolet">突破价：${it.price_rise}</span>
+            <span style="color: #98f17f">跌破价：${it.price_down}</span>
+            </div>`
         })
-        console.log(mailOptions);
+
         email.sendMail(mailOptions, function (err, info) {
             if (err) {
                 console.log(err);
@@ -206,7 +206,7 @@ app.post('/getRealTimePush', (req, res) => {
     let { pageSize=10,pageNum=1 } = req.body
 
     let sql =   `select * from real_time limit  ${(pageNum-1)*pageSize}, ${pageSize} `
-    console.log(sql);
+
     conn(sql).then(r => {
         if(r){
             res.json(new Result({ msg:'创建成功',data:r }))
@@ -225,7 +225,7 @@ app.post('/removeRealTimePush', (req, res) => {
     let { share_code } = req.body
 
     let sql = `delete from real_time where share_code = ${share_code}`
-    console.log(sql);
+
     conn(sql).then(r => {
         if(r){
             res.json(new Result({ msg:'删除成功' }))

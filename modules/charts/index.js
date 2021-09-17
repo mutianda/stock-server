@@ -2,7 +2,7 @@ var express = require('express');
 var swig = require('swig');
 var path = require('path')
 var app = express();
-var port = process.env.PORT || 4000
+var port = 3399
 var { conn ,Result,} = require("../../index.js");
 
 //设置swig页面不缓存
@@ -266,7 +266,7 @@ function getData(item){
 				},
 				tooltip: {
 					formatter: params => {
-						console.log(params);
+
 						return "sss";
 					}
 				}
@@ -386,10 +386,10 @@ app.get('/html',function(request,response){
 			item.lianban = JSON.parse(item.lianban)
 			return item
 		})
-		console.log(list[0])
+
 		if(list.length==1){
 			const ops = getData(list[0])
-			console.log(ops,'ops----',JSON.stringify(ops),'json---');
+
 			response.render('index.html',{
 				//传参
 				title:'首页1', content:JSON.stringify(ops)

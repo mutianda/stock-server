@@ -74,7 +74,7 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 38 9  *  * *', ()=>{
+    schedule.scheduleJob('23 38 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -84,7 +84,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 42 9  *  * *', ()=>{
+    schedule.scheduleJob('23 42 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -105,7 +105,7 @@ const getAllKLineLx = ()=>{
     //     })
     // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 26 10  *  * *', ()=>{
+    schedule.scheduleJob('23 26 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -117,7 +117,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23  23 10 *  * *', ()=>{
+    schedule.scheduleJob('23  23 21 *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -237,17 +237,54 @@ function getKLine(list,sql){
 
         }).catch(e=>{
                 resolve(e)
-                console.log(JSON.stringify(e).slice(0,400));
+
             }
         )
 
     })
 
 }
+app.post('/searchShare', (req, res) => {
+    let {type='kline',keyword=''} = req.body
+    let isNum = /^\d+$/.test(keyword);
+    if(keyword=='') {
+        res.json(new Result({data:[],msg:'查询成功',code:200}))
+        return
+    }
+    let sql
+    if(isNum){
+        sql =  `select  share_code,share_name,today_time,id,dbl,chaodbl,chudbl,lianban,last,lianbanlength from ${type} where share_code LIKE '${keyword}%' `
+    }else {
+        sql =   `select share_code,share_name,today_time,id,dbl,chaodbl,chudbl,lianban,last,lianbanlength  from ${type} where  share_name LIKE '${keyword}%'`
+    }
+    // or share_name LIKE '%${keyword}%'
+    conn(sql).then(re=>{
+
+        if(re.length){
+            const list = re.map(item=>{
+                // item.kline = JSON.parse(item.kline)
+                item.code = item.share_code
+                item.name = item.share_name
+                // item.macd = JSON.parse(item.macd)
+                item.last = JSON.parse(item.last)
+                item.lianban = type=='kline'?JSON.parse(item.lianban):[]
+                return item
+            })
+
+            res.json(new Result({data:list,msg:'查询成功'}))
+        }else {
+            res.json(new Result({data:re,msg:'查询成功',code:500}))
+        }
+
+    }).catch(e=>{
+        res.json(new Result({data:e,msg:'查询error',code:500}))
+
+    })
+})
 app.post('/getKLine', (req, res) => {
     let {type='kline',shareCode=''} = req.body
     let sql = `select * from ${type} where share_code = '${shareCode}' `
-    console.log(sql);
+
     conn(sql).then(re=>{
 
         if(re.length){
@@ -303,11 +340,11 @@ app.post('/getAllKLine', async (req, res) => {
     }
     let countres = await getSqlRes(sql2)
     sql+= (' limit '+(pageNum-1)*pageSize+','+pageNum*pageSize)
-    console.log(sql);
+
     conn(sql).then(async r=>{
-        console.log(r.length);
+
             let arr = r
-            console.log(countres);
+
             const list = arr.map(item=>{
                 item.code = item.share_code
                 item.name = item.share_name
@@ -332,16 +369,16 @@ function computeAll(){
     // const tables = ['kline','kline_week','kline_60m','kline_30m']
     const tables = ['kline']
 
-    console.log('all is start')
+
     const promise = []
     tables.forEach(item=>{
         promise.push(conn('select * from    '+' '+item))
     })
     Promise.all(promise).then(resList=>{
-        console.log('all is get')
+
         let obj = {}
         resList.map((res,index)=>{
-            console.log(res.length);
+
 
             if(res&&Array.isArray(res)){
                 let Dbl = new diBeiLi(res,'all')
