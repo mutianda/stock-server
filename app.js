@@ -4,6 +4,7 @@ var realTimePush = require('./modules/real-time/index.js')
 require('./modules/common/index.js')
 require('./modules/macd/index.js')
 require('./modules/charts/index')
+require('./modules/like/index')
 let login = true;
 realTimePush()
 // 每分钟的第30秒触发： '30 * * * * *'

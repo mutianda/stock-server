@@ -2,13 +2,16 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result} = require("
 // { getTime,conn ,schedule,app,api,socket,email}
 var realTimeList=[]
 var times =0
+
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/3 9-18 * * 1-5', ()=>{
-        let {m,d,h,min,s} = getTime()
+    schedule.scheduleJob('30  0/2 9-14 * * 1-5', ()=>{
         realTimeList = []
         console.log('推送')
-        getRealTime()
+        const emailList = Object.keys(socket.onlineUsers)
+        emailList.forEach(email=>{
+            getRealTime(email)
 
+        })
     })
     schedule.scheduleJob('30 24 22,17,8 * * 1-6', ()=>{
         getDblEmail()
@@ -76,10 +79,11 @@ getDblEmail = ()=>{
     })
 }
 
-getRealTime = ()=>{
-    const sql = "SELECT * FROM real_time"
+getRealTime = (email)=>{
+    const sql = `SELECT * FROM real_time where user_email = '${email}'`
     return new Promise((reslove,reject)=>{
         conn(sql).then( r => {
+            console.log(r.length,'实时推送');
             if(r&&r.length>0){
                 realTimeList = r
                 const prom = []
@@ -93,7 +97,7 @@ getRealTime = ()=>{
                     prom.push(api.getShareDetail(code))
                 })
                 Promise.all(prom).then((resu)=>{
-                    realTimeShare(resu)
+                    realTimeShare(resu,email)
                 })
             }
         }).catch(e=>{
@@ -102,33 +106,56 @@ getRealTime = ()=>{
         )
     })
 }
-getRealTime()
-function realTimeShare(resu){
+
+function realTimeShare(resu,email){
     const arr = []
       resu.forEach(res=>{
+
           let a = res.indexOf('(')
           let b =res.lastIndexOf(')')
           res = res.slice(a+1,b)
           const {data} = JSON.parse(res)
+          console.log(data,'最终推送');
           const share = realTimeList.find(item=>item.share_code==data.f57)
-          if(share.price_rise&&share.price_rise<data.f43){
-              arr.push({...data,...share,desc:'B',pushType:'up',code:share.share_code,name:share.share_name,lastPrice:data.f43,lastRise:data.f170})
+          if(share.price_rise&&share.price_rise<data.f43+1){
+              arr.push({...data,...share,desc:'B',pushType:'up',code:share.share_code,name:share.share_name,last:{
+                      high:data.f44,
+                      low:data.f45,
+                      open:data.f46,
+                      close:data.f43,
+                      volumes:data.f47,
+                      turnover:data.f168,
+                      risePrecent:data.f170,
+                      money:data.f48,
+                  }})
+              console.log(arr);
           }
-          if(share.price_down&&share.price_down>data.f43){
-              arr.push({...data,...share,desc:'S',pushType:'down',code:share.share_code,name:data.f58,lastPrice:data.f43,lastRise:data.f170})
+          if(share.price_down&&share.price_down>data.f43-1){
+              console.log(arr);
+              arr.push({...data,...share,desc:'S',pushType:'down',code:share.share_code,name:share.share_name,last:{
+                      high:data.f44,
+                      low:data.f45,
+                      open:data.f46,
+                      close:data.f43,
+                      volumes:data.f47,
+                      turnover:data.f168,
+                      risePrecent:data.f170,
+                      money:data.f48,
+                  }})
           }
       })
+    console.log(arr);
     if(arr.length){
-
-        socket.emit('realTimeStock',arr)
+        console.log(socket.onlineUsers[email],'推送出去');
+        socket.to(socket.onlineUsers[email]).emit('realTimeStock',arr)
         times++
         if(times>10){
 
          times=0
         var mailOptions = {
-            from: '横断万股<270947682@qq.com>', // 发送者
+            from: '横断万股<qingyi.zongbu@qq.com>', // 发送者
             sender:'股票分析',
-            to: 'qingyi.zongbu@qq.com', // 接受者,可以同时发送多个,以逗号隔开
+            to: email, // 接受者,可以同时发送多个,以逗号隔开
             subject: '分析', // 标题
             //text: 'Hello world', // 文本
             html: `<h2>分析:</h2>
@@ -160,21 +187,21 @@ function realTimeShare(resu){
 }
 
 app.post('/addRealTimePush', (req, res) => {
-    let { user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down } = req.body
-    let arr = [ user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down]
+    let { email, share_code,share_name , price_rise , turn_hand , limit_up ,price_down } = req.body
+    let arr = [ share_code,share_name , price_rise , turn_hand , limit_up ,price_down,email]
     let newarry = arr.map(citem => {
         return "'" + citem + "'"
     })
-    let sql = "REPLACE  INTO real_time ( user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ) VALUES ( " +
+    let sql = "REPLACE  INTO real_time (  share_code,share_name , price_rise , turn_hand , limit_up ,price_down ,user_email) VALUES ( " +
         ""+newarry.toLocaleString() +")"
 
     conn(sql).then( r => {
 
         if(r&&r.insertId){
-            res.json(new Result({ msg:'创建成功' }))
+            res.json(new Result({ msg:'创建成功',code:200 }))
 
         }else {
-            res.json(new Result({ msg:'创建失败',code:0 }))
+            res.json(new Result({ msg:'创建失败',code:500 }))
 
         }
 
@@ -182,37 +209,18 @@ app.post('/addRealTimePush', (req, res) => {
 
     })
 })
-app.post('/editRealTimePush', (req, res) => {
-    let { user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down } = req.body
-    let arr = [ user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down]
-    let newarry = arr.map(citem => {
-        return "'" + citem + "'"
-    })
-    let sql = "REPLACE  INTO real_time ( user_id , share_code,share_name , price_rise , turn_hand , limit_up ,price_down ) VALUES ( " +
-            ""+newarry.toLocaleString() +")"
 
-
-    conn(sql).then(r=>{
-        if(r){
-            res.json(new Result({ msg:'编辑成功' }))
-
-        }else {
-            res.json(new Result({ msg:'编辑失败',code:0 }))
-
-        }
-    })
-})
 app.post('/getRealTimePush', (req, res) => {
-    let { pageSize=10,pageNum=1 } = req.body
+    let { email} = req.body
 
-    let sql =   `select * from real_time limit  ${(pageNum-1)*pageSize}, ${pageSize} `
+    let sql =   `select * from real_time where user_email = '${email}' `
 
     conn(sql).then(r => {
         if(r){
-            res.json(new Result({ msg:'创建成功',data:r }))
+            res.json(new Result({ msg:'获取成功',data:r ,code:200}))
 
         }else {
-            res.json(new Result({ msg:'创建失败',code:0 }))
+            res.json(new Result({ msg:'创建失败',code:500 }))
 
         }
 
@@ -221,10 +229,15 @@ app.post('/getRealTimePush', (req, res) => {
         console.log(e);
     })
 })
+app.post('/getRealTimeList', (req, res) => {
+    let { email} = req.body
+    getRealTime(email)
+    res.json(new Result({ msg:'更新成功' }))
+})
 app.post('/removeRealTimePush', (req, res) => {
-    let { share_code } = req.body
+    let { id } = req.body
 
-    let sql = `delete from real_time where share_code = ${share_code}`
+    let sql = `delete from real_time where id = ${id}`
 
     conn(sql).then(r => {
         if(r){

@@ -6,7 +6,7 @@ app.post('/register', (req, res) => {
 	let newarry = arr.map(citem => {
 		return "'" + citem + "'"
 	})
-	let sql = "INSERT INTO user ( user_name , user_password , user_phone , role , salary , workStatus ,user_email ) VALUES ( "+newarry.toLocaleString() +")"
+	let sql = ''
 
 	conn.query(sql, (e, r) => {
 
@@ -20,20 +20,24 @@ app.post('/register', (req, res) => {
 
 	})
 })
-app.get('/login', (req, res) => {
-	let { userphone ,password } = req.query
-	console.log(userphone,password)
-	let sql = "SELECT * FROM user where user_phone ="+userphone+" and user_password="+password
+app.post('/login', (req, res) => {
+	let { userName ,password } = req.body
+	console.log(userName,password)
+	if(!userName||!password){
+		res.json(new Result({msg:'登录出错',code:0 }))
+		return
+	}
+	let sql = "SELECT * FROM user where user_phone = "+userName+" or user_email = "+userName+" and user_password="+password
 	conn(sql).then(r=>{
 		if(r.length>0){
 			r[0].token = 'token'
 			r[0].password=''
-			res.json(new Result({ data: r[0],code:1 }))
+			res.json(new Result({ data: r[0],code:200 }))
 		}else {
-			res.json(new Result({msg:'登录出错',code:0 }))
+			res.json(new Result({msg:'登录出错',code:500 }))
 		}
 	}).catch(e=>{
-		res.json(new Result({msg:'登录出错',code:0 }))
+		res.json(new Result({msg:'登录出错',code:500 }))
 
 	})
 })

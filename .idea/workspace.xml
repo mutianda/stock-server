@@ -20,8 +20,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bf2a1f8-bfcd-4345-abca-c9373bc82d28" name="Default Changelist" comment="917">
-      <change afterPath="$PROJECT_DIR$/modules/like/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/common/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/modules/common/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/like/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/modules/like/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/real-time/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/modules/real-time/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/socket.js" beforeDir="false" afterPath="$PROJECT_DIR$/socket.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +54,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../stock-web-app" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
@@ -87,7 +91,8 @@
       <workItem from="1630916056194" duration="30430000" />
       <workItem from="1631323529914" duration="13727000" />
       <workItem from="1631497862434" duration="1941000" />
-      <workItem from="1631839852657" duration="14789000" />
+      <workItem from="1631839852657" duration="16094000" />
+      <workItem from="1632271451627" duration="30204000" />
     </task>
     <task id="LOCAL-00001" summary="ss">
       <created>1617879921047</created>
@@ -194,7 +199,14 @@
       <option name="project" value="LOCAL" />
       <updated>1631871836383</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="917">
+      <created>1631944771256</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1631944771257</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -244,21 +256,26 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="100" y="114" width="1720" height="840" key="DiffContextDialog/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1630917518189" />
-    <state x="740" y="274" key="FileChooserDialogImpl" timestamp="1631350706059">
+    <state x="740" y="274" key="FileChooserDialogImpl" timestamp="1632366063518">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="740" y="274" key="FileChooserDialogImpl/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1631350706059" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1631871837806">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="740" y="274" key="FileChooserDialogImpl/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1632366063518" />
+    <state x="2472" y="253" key="Vcs.Push.Dialog.v2" timestamp="1631944775311">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="552" y="253" key="Vcs.Push.Dialog.v2/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1631871837806" />
-    <state x="662" y="237" width="596" height="594" key="find.popup" timestamp="1631507357061">
+    <state x="2472" y="253" key="Vcs.Push.Dialog.v2/1920.0.1920.1040/0.0.1920.1040@1920.0.1920.1040" timestamp="1631944775311" />
+    <state x="662" y="237" width="596" height="594" key="find.popup" timestamp="1632298937635">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="662" y="237" width="596" height="594" key="find.popup/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1631507357061" />
+    <state x="662" y="237" width="596" height="594" key="find.popup/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1632298937635" />
     <state x="666" y="320" key="git4idea.merge.GitPullDialog" timestamp="1631265928110">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="666" y="320" key="git4idea.merge.GitPullDialog/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1631265928110" />
+    <state x="601" y="246" width="700" height="530" key="recent.locations.popup" timestamp="1632294847570">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="601" y="246" width="700" height="530" key="recent.locations.popup/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1632294847570" />
   </component>
 </project>
