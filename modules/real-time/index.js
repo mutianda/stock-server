@@ -6,7 +6,6 @@ var times =0
 const realTimePush=()=>{
     schedule.scheduleJob('30  0/2 9-14 * * 1-5', ()=>{
         realTimeList = []
-        console.log('推送')
         const emailList = Object.keys(socket.onlineUsers)
         emailList.forEach(email=>{
             getRealTime(email)
@@ -66,10 +65,10 @@ getDblEmail = ()=>{
 
                 email.sendMail(mailOptions, function (err, info) {
                     if (err) {
-                        console.log(err);
+
                         return;
                     }
-                    console.log('发送了')
+
                 })
             }
 
@@ -83,7 +82,7 @@ getRealTime = (email)=>{
     const sql = `SELECT * FROM real_time where user_email = '${email}'`
     return new Promise((reslove,reject)=>{
         conn(sql).then( r => {
-            console.log(r.length,'实时推送');
+
             if(r&&r.length>0){
                 realTimeList = r
                 const prom = []
@@ -115,9 +114,8 @@ function realTimeShare(resu,email){
           let b =res.lastIndexOf(')')
           res = res.slice(a+1,b)
           const {data} = JSON.parse(res)
-          console.log(data,'最终推送');
           const share = realTimeList.find(item=>item.share_code==data.f57)
-          if(share.price_rise&&share.price_rise<data.f43+1){
+          if(share.price_rise&&share.price_rise<data.f43){
               arr.push({...data,...share,desc:'B',pushType:'up',code:share.share_code,name:share.share_name,last:{
                       high:data.f44,
                       low:data.f45,
@@ -128,10 +126,10 @@ function realTimeShare(resu,email){
                       risePrecent:data.f170,
                       money:data.f48,
                   }})
-              console.log(arr);
+
           }
-          if(share.price_down&&share.price_down>data.f43-1){
-              console.log(arr);
+          if(share.price_down&&share.price_down>data.f43){
+
               arr.push({...data,...share,desc:'S',pushType:'down',code:share.share_code,name:share.share_name,last:{
                       high:data.f44,
                       low:data.f45,
@@ -144,9 +142,8 @@ function realTimeShare(resu,email){
                   }})
           }
       })
-    console.log(arr);
+
     if(arr.length){
-        console.log(socket.onlineUsers[email],'推送出去');
         socket.to(socket.onlineUsers[email]).emit('realTimeStock',arr)
         times++
         if(times>10){
@@ -176,10 +173,10 @@ function realTimeShare(resu,email){
 
         email.sendMail(mailOptions, function (err, info) {
             if (err) {
-                console.log(err);
+
                 return;
             }
-            console.log('发送了')
+
         })
         }
     }

@@ -183,7 +183,7 @@ function doAllKLinePromise(n,list,t,sql){
 
     if(prom.length){
         Promise.all(prom).then((resu)=>{
-            console.log(resu.length);
+
             getKLine(resu,sql).then(res=>{
                 if(n<list.length){
                     console.log('进行了n次',n)
@@ -198,7 +198,7 @@ function doAllKLinePromise(n,list,t,sql){
 }
 function getKLine(list,sql){
     return new Promise((resolve,reject)=>{
-        console.log('list'+list.length)
+
         let time = getTime()
         let sql2 =sql
         // moneykl,
@@ -210,7 +210,7 @@ function getKLine(list,sql){
                 res = res.slice(a+1,b)
 
                 const data =JSON.parse(res)
-                console.log(data.data.name+'进行了一次')
+
                 let klines = JSON.stringify(data.data.klines)
                 let dblObj = new diBeiLi([{share_name:data.data.name,share_code:data.data.code,kline:klines}])
                 let macdList = dblObj.getKline()
@@ -233,7 +233,7 @@ function getKLine(list,sql){
 
         conn(sql2).then(r2=>{
             resolve(r2)
-            console.log('wancheng')
+
 
         }).catch(e=>{
                 resolve(e)

@@ -22,7 +22,7 @@ app.post('/register', (req, res) => {
 })
 app.post('/login', (req, res) => {
 	let { userName ,password } = req.body
-	console.log(userName,password)
+
 	if(!userName||!password){
 		res.json(new Result({msg:'登录出错',code:0 }))
 		return
