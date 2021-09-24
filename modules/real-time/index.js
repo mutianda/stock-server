@@ -4,12 +4,11 @@ var realTimeList=[]
 var times =0
 
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/2 9-14 * * 1-5', ()=>{
+    schedule.scheduleJob('30  0/1 9-17 * * 1-5', ()=>{
         realTimeList = []
         const emailList = Object.keys(socket.onlineUsers)
-        emailList.forEach(email=>{
-            getRealTime(email)
-
+        emailList.forEach(emailStr=>{
+            getRealTime(emailStr)
         })
     })
     schedule.scheduleJob('30 24 22,17,8 * * 1-6', ()=>{
@@ -78,8 +77,8 @@ getDblEmail = ()=>{
     })
 }
 
-getRealTime = (email)=>{
-    const sql = `SELECT * FROM real_time where user_email = '${email}'`
+getRealTime = (emailStr)=>{
+    const sql = `SELECT * FROM real_time where user_email = '${emailStr}'`
     return new Promise((reslove,reject)=>{
         conn(sql).then( r => {
 
@@ -96,7 +95,7 @@ getRealTime = (email)=>{
                     prom.push(api.getShareDetail(code))
                 })
                 Promise.all(prom).then((resu)=>{
-                    realTimeShare(resu,email)
+                    realTimeShare(resu,emailStr)
                 })
             }
         }).catch(e=>{
@@ -106,7 +105,7 @@ getRealTime = (email)=>{
     })
 }
 
-function realTimeShare(resu,email){
+function realTimeShare(resu,emailStr){
     const arr = []
       resu.forEach(res=>{
 
@@ -144,7 +143,7 @@ function realTimeShare(resu,email){
       })
 
     if(arr.length){
-        socket.to(socket.onlineUsers[email]).emit('realTimeStock',arr)
+        socket.to(socket.onlineUsers[emailStr]).emit('realTimeStock',arr)
         times++
         if(times>10){
 
@@ -152,7 +151,7 @@ function realTimeShare(resu,email){
         var mailOptions = {
             from: '横断万股<qingyi.zongbu@qq.com>', // 发送者
             sender:'股票分析',
-            to: email, // 接受者,可以同时发送多个,以逗号隔开
+            to: emailStr, // 接受者,可以同时发送多个,以逗号隔开
             subject: '分析', // 标题
             //text: 'Hello world', // 文本
             html: `<h2>分析:</h2>

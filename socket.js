@@ -10,12 +10,16 @@ io.sockets.on('connection', (socket) => {
     //监听新用户加入
     socket.on('login', function(obj){
         //将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
-        socket.name = obj.email;
+
+        if(obj.email){
+            socket.name = obj.email;
+            io.onlineUsers[obj.email] = obj.id;
+            //向所有客户端广播用户加入
+            io.emit('login', 'welcome'+obj.email);
+            console.log(obj.email+'加入了聊天室');
+        }
         //检查在线列表，如果不在里面就加入
-        io.onlineUsers[obj.email] = obj.id;
-        //向所有客户端广播用户加入
-        io.emit('login', 'welcome'+obj.email);
-        console.log(obj.email+'加入了聊天室');
+
     });
 
     socket.on('message', message => {

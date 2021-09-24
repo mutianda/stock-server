@@ -54,8 +54,8 @@ function realTimeShare(resu,shareList){
 			last:{
 				high:data.f44,
 				low:data.f45,
-				open:data.f43,
-				close:data.f46,
+				open:data.f46,
+				close:data.f43,
 				time:(new Date()).getTime(),
 				volumes:data.f47,
 				turnover:data.f168,
