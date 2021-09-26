@@ -2,7 +2,7 @@ var { conn ,schedule,app,api,socket,email,getTime,diBeiLi,fs,Result,} = require(
 const getTodayRiseLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('2  40 12 * * 6', ()=>{
+    schedule.scheduleJob('2  45 21 * * 7', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('所有的今日信息')
         getTodayRise()
@@ -13,7 +13,7 @@ let stock = {
 }
 let stockCode = []
 // 获取所有股票今天的信息
-getTodayRiseLx()
+// getTodayRiseLx()
 
 
 function getTodayRise(){
@@ -74,7 +74,7 @@ function getTodayRise(){
 const getAllKLineLx = ()=>{
 
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 38 21  *  * *', ()=>{
+    schedule.scheduleJob('23 49 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -84,7 +84,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 42 21  *  * *', ()=>{
+    schedule.scheduleJob('23 53 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -105,7 +105,7 @@ const getAllKLineLx = ()=>{
     //     })
     // })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23 26 21  *  * *', ()=>{
+    schedule.scheduleJob('23 56 21  *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')
@@ -117,7 +117,7 @@ const getAllKLineLx = ()=>{
         })
     })
     //每分钟的1-10秒都会触发，其它通配符依次类推
-    schedule.scheduleJob('23  23 21 *  * *', ()=>{
+    schedule.scheduleJob('23  59 21 *  * *', ()=>{
         let {m,d,h,min,s} = getTime()
         console.log('更新:'+ m+'-'+d+'   '+h+':'+min+':'+s);
         console.log('所有的k线')

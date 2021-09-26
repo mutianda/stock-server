@@ -4,7 +4,7 @@ var realTimeList=[]
 var times =0
 
 const realTimePush=()=>{
-    schedule.scheduleJob('30  0/1 9-17 * * 1-5', ()=>{
+    schedule.scheduleJob('30  0/1 9-14 * * *', ()=>{
         realTimeList = []
         const emailList = Object.keys(socket.onlineUsers)
         emailList.forEach(emailStr=>{
@@ -145,7 +145,7 @@ function realTimeShare(resu,emailStr){
     if(arr.length){
         socket.to(socket.onlineUsers[emailStr]).emit('realTimeStock',arr)
         times++
-        if(times>10){
+        if(times>30){
 
          times=0
         var mailOptions = {
